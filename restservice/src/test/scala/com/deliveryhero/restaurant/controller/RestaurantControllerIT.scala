@@ -1,6 +1,6 @@
-package com.deliveryhero.restaurant
+package com.deliveryhero.restaurant.controller
 
-import com.deliveryhero.restaurant.controller.RestaurantController
+import com.deliveryhero.restaurant.RestaurantsRoute
 import com.deliveryhero.restaurant.model.{Address, Restaurant}
 import com.deliveryhero.restaurant.service.RestaurantService
 import org.apache.http.client.fluent.Request
@@ -14,10 +14,11 @@ class RestaurantControllerIT extends FunSpec with Matchers with MockFactory with
   implicit val formats = DefaultFormats
   implicit val restaurantService = new RestaurantService()
   implicit val restaurantController = new RestaurantController
+  implicit val healthCheckController = new HealthCheckController
 
   private val TestPort = 1234
   private val BaseUrl = s"http://localhost:$TestPort"
-  private val RestaurantsEndpoint = s"$BaseUrl/restaurants"
+  private val RestaurantsEndpoint = s"$BaseUrl/v1/restaurants"
 
   val restaurantsRoute = new RestaurantsRoute()
 
@@ -25,8 +26,8 @@ class RestaurantControllerIT extends FunSpec with Matchers with MockFactory with
     restaurantsRoute.startService(TestPort)
   }
 
-  describe("Configuration management") {
-    it("should save entire configuration") {
+  describe("Restaurant") {
+    it("Should save restaurant") {
       val restaurant = Restaurant("Zaytoon", "087-123-4567",
         Seq("Persian", "Middle Eastern"),
         Address("13 Parliament Street", "Temple Bar", "Dublin", "Ireland"),

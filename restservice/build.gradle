@@ -1,0 +1,80 @@
+import com.bmuschko.gradle.docker.tasks.image.*
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
+
+import java.nio.file.Paths
+
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '2.0.1'
+}
+
+dependencies {
+    compile group: 'org.json4s', name: 'json4s-native_2.12', version: '3.5.3'
+    compile group: 'org.json4s', name: 'json4s-jackson_2.12', version: '3.5.3'
+
+    compile group: 'com.typesafe.akka', name: 'akka-http_2.12', version: '10.0.10'
+
+    compile group: "com.github.swagger-akka-http", name: "swagger-scala-module_2.12", version: "2.0.1"
+    compile group: "javax.ws.rs", name: "javax.ws.rs-api", version: "2.0.1"
+    compile group: 'com.github.swagger-akka-http', name: 'swagger-akka-http_2.12', version: '2.0.0'
+
+    compile group: 'org.apache.commons', name: 'commons-text', version: '1.1'
+    testCompile group: 'org.apache.httpcomponents', name: 'fluent-hc', version: '4.5.3'
+}
+
+shadowJar {
+    dependsOn build
+    zip64 true
+    classifier = 'shadow'
+    append 'reference.conf'
+    manifest {
+        attributes 'Implementation-Title': title,
+                'Implementation-Version': version,
+                'Main-Class': mainClassFile
+    }
+    dependencies {
+    }
+}
+
+task assembleDocker {
+    dependsOn shadowJar
+    doLast {
+        copy {
+            from shadowJar.archivePath
+            into Paths.get(buildDir as String, 'docker')
+        }
+        copy {
+            from "${project.projectDir}/docker" include "log4j.properties", "entrypoint.sh"
+            into Paths.get(buildDir as String, 'docker')
+        }
+    }
+}
+
+task createDockerfile(type: Dockerfile) {
+    dependsOn assembleDocker
+    destFile = project.file('build/docker/Dockerfile')
+    from 'openjdk:alpine'
+    exposePort 8080
+    environmentVariable 'WORKING_DIR', '/opt/deliveryhero'
+    environmentVariable 'JMX_HOME', '${WORKING_DIR}/jmx_agent'
+    workingDir '${WORKING_DIR}'
+    instruction """RUN apk update && apk add ca-certificates wget && apk add --no-cache bash && update-ca-certificates"""
+    copyFile shadowJar.archiveName, shadowJar.archiveName
+    copyFile 'entrypoint.sh', '${WORKING_DIR}'
+    copyFile 'log4j.properties', '${WORKING_DIR}'
+    instruction """RUN chmod +x /opt/deliveryhero/entrypoint.sh"""
+    label "${project.group}.maintainer": "Shane Murphy \"shane.murphy@kaspersky.com\"",
+            "${project.group}.version": "$project.version",
+            "${project.group}.release-date": "${new Date().format('yyyy-MM-dd HH:mm')}"
+    entryPoint './entrypoint.sh', shadowJar.archiveName, mainClassFile
+}
+
+task buildDocker(type: DockerBuildImage) {
+    dependsOn createDockerfile
+    inputDir = Paths.get(buildDir as String, 'docker').toFile()
+    tags = [
+            project.group + '/' + project.name + ':latest',
+            project.group + '/' + project.name + ':' + (project.findProperty('tag') ?: project.version)
+    ]
+}
