@@ -22,7 +22,7 @@ gradle buildDocker
 Run the docker image
 
 ```sh
-docker run -p 8080:8080 com.deliveryhero/restservice:latest  
+docker run -p 8080:8080 --namme deliveryhero-rest com.deliveryhero/restservice:latest  
 ```
 
 ## Usage example

@@ -23,3 +23,4 @@ gradle
 **/target
 **/*.sc
 **/*.jar
+.DS_Store

@@ -5,8 +5,7 @@ import com.github.swagger.akka.SwaggerHttpService
 import com.github.swagger.akka.model.{Contact, Info}
 
 object SwaggerDocService extends SwaggerHttpService {
-  override def apiClasses: Set[Class[_]] = Set(
-    classOf[RestaurantController])
+  override def apiClasses: Set[Class[_]] = Set(classOf[RestaurantController])
 
   override def host: String = "localhost:8080"
 
