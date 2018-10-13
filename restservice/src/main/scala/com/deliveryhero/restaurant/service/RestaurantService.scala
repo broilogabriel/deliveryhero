@@ -34,20 +34,22 @@ class RestaurantService(filePath: Option[String] = None)
     safeLoad.find(_.id.contains(id))
   }
 
-  override def update(id: Long, update: Restaurant): Future[StatusCode] = getById(id).map {
-    case Some(restaurant) =>
-      val updatedRestaurants = safeLoad.filterNot(_.id.contains(id)) :+ update.copy(id = restaurant.id)
-      save(updatedRestaurants)
-      StatusCodes.NoContent
-    case None => StatusCodes.NotFound
+  override def update(id: Long, update: Restaurant): Future[StatusCode] = getById(id).flatMap {
+    case Some(restaurant) => for {
+      currentRestaurants <- Future(safeLoad)
+      updatedRestaurants = currentRestaurants.filterNot(_.id.contains(id)) :+ update.copy(id = restaurant.id)
+      _ <- Future(save(updatedRestaurants))
+    } yield StatusCodes.NoContent
+    case None => Future(StatusCodes.NotFound)
   }
 
-  override def delete(id: Long): Future[StatusCode] = getById(id).map {
-    case Some(_) =>
-      val updatedRestaurants = safeLoad.filterNot(_.id.contains(id))
-      save(updatedRestaurants)
-      StatusCodes.NoContent
-    case None => StatusCodes.NotFound
+  override def delete(id: Long): Future[StatusCode] = getById(id).flatMap {
+    case Some(_) => for {
+      currentRestaurants <- Future(safeLoad)
+      updatedRestaurants = currentRestaurants.filterNot(_.id.contains(id))
+      _ <- Future(save(updatedRestaurants))
+    } yield StatusCodes.NoContent
+    case None => Future(StatusCodes.NotFound)
   }
 
   private def fromFile(filePath: String): Seq[Restaurant] = Try {
@@ -76,8 +78,8 @@ class RestaurantService(filePath: Option[String] = None)
     currentRestaurants
   }
 
-  def save(restaurants: Seq[Restaurant]): Unit = filePath.foreach(path => {
-    logger.info(s"Saving restaurants, updates DB: $restaurants")
+  private def save(restaurants: Seq[Restaurant]): Boolean = filePath.exists(path => {
+    logger.debug(s"Saving restaurants, updates DB: $restaurants")
     val json = writePretty[Seq[Restaurant]](restaurants)
     val writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(path)), StandardCharsets.UTF_8), true)
     try {
@@ -85,5 +87,6 @@ class RestaurantService(filePath: Option[String] = None)
     } finally {
       writer.close()
     }
+    true
   })
 }
