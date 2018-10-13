@@ -74,6 +74,6 @@ task buildDocker(type: DockerBuildImage) {
     inputDir = Paths.get(buildDir as String, 'docker').toFile()
     tags = [
             project.group + '/' + project.name + ':latest',
-            project.group + '/' + project.name + ':' + (project.findProperty('tag') ?: project.version)
+            project.group + '/' + project.name + ':' + project.version
     ]
 }
