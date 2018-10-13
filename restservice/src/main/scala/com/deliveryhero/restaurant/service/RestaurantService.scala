@@ -60,15 +60,14 @@ class RestaurantService(filePath: Option[String] = None)
     read[Seq[Restaurant]](new InputStreamReader(new FileInputStream(filePath), "utf-8"))
   } match {
     case Success(configuration) => configuration
-    case Failure(t: Throwable) => {
+    case Failure(t: Throwable) =>
       logger.error(s"Unable to read restaurants from $filePath", t)
       saveEmptyFile
-    }
   }
 
   private def safeLoad = {
     val restaurants = filePath.map(fromFile) getOrElse saveEmptyFile
-    logger.info(s"Loaded restaurants: $restaurants")
+    logger.debug(s"Loaded restaurants: $restaurants")
     restaurants
   }
 

@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath group: 'com.bmuschko', name:'gradle-docker-plugin', version:'3.2.4'
+        classpath group: 'com.bmuschko', name: 'gradle-docker-plugin', version: '3.2.4'
     }
 }
 
@@ -13,7 +13,7 @@ plugins {
 
 allprojects {
     group 'com.deliveryhero'
-    version '0.1-SNAPSHOT'
+    version '0.1'
 
     sourceCompatibility = 1.8
 

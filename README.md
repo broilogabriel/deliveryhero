@@ -1,7 +1,7 @@
 # Delivery Hero Restaurant REST Service
 > Self contained API service for CRUD operations on Restaurants.
 
-This service is built using the following technologies:
+This service is built using AkkaHttp
 
 ![](https://avatars2.githubusercontent.com/u/7225556?s=280&v=4)
 

@@ -19,7 +19,6 @@ dependencies {
     compile group: "javax.ws.rs", name: "javax.ws.rs-api", version: "2.0.1"
     compile group: 'com.github.swagger-akka-http', name: 'swagger-akka-http_2.12', version: '2.0.0'
 
-    compile group: 'org.apache.commons', name: 'commons-text', version: '1.1'
     testCompile group: 'org.apache.httpcomponents', name: 'fluent-hc', version: '4.5.3'
 }
 
@@ -32,8 +31,6 @@ shadowJar {
         attributes 'Implementation-Title': title,
                 'Implementation-Version': version,
                 'Main-Class': mainClassFile
-    }
-    dependencies {
     }
 }
 
@@ -57,15 +54,16 @@ task createDockerfile(type: Dockerfile) {
     from 'openjdk:alpine'
     exposePort 8080
     environmentVariable 'WORKING_DIR', '/opt/deliveryhero'
-    environmentVariable 'JMX_HOME', '${WORKING_DIR}/jmx_agent'
     workingDir '${WORKING_DIR}'
-    instruction """RUN apk update && apk add ca-certificates wget && apk add --no-cache bash && update-ca-certificates"""
     copyFile shadowJar.archiveName, shadowJar.archiveName
     copyFile 'entrypoint.sh', '${WORKING_DIR}'
     copyFile 'log4j.properties', '${WORKING_DIR}'
-    instruction """RUN mkdir config \\ 
-                   && chmod +x /opt/deliveryhero/entrypoint.sh"""
-    label "${project.group}.maintainer": "Shane Murphy \"shane.murphy@kaspersky.com\"",
+    instruction """RUN apk update \\
+                    && apk add ca-certificates wget \\ 
+                    && apk add --no-cache bash && update-ca-certificates \\
+                    && mkdir config \\ 
+                    && chmod +x /opt/deliveryhero/entrypoint.sh"""
+    label "${project.group}.maintainer": "Shane Murphy \"smur89@gmail.com\"",
             "${project.group}.version": "$project.version",
             "${project.group}.release-date": "${new Date().format('yyyy-MM-dd HH:mm')}"
     entryPoint './entrypoint.sh', shadowJar.archiveName, mainClassFile
