@@ -13,7 +13,6 @@ class HealthCheckController extends LazyLogging {
 
   def routes: Route = {
     pathPrefix("healthcheck") {
-      logger.info("healthcheck... OK")
       ping
     }
   }

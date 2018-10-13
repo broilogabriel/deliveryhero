@@ -35,7 +35,7 @@ http://localhost:8080/swagger/index.html
 
 ### Examples
 #### Healthcheck
-GET
+GET /v1/healthcheck
 ```sh
 curl -X GET "http://localhost:8080/v1/healthcheck" -H "accept: */*"
 ```
@@ -47,27 +47,27 @@ GET /v1/restaurants
 curl -X GET "http://localhost:8080/v1/restaurants" -H "accept: */*"
 ```
 
-GET /restaurants/{id}
+GET /v1/restaurants/{id}
 > Gets a given restaurant
 
 ```sh
 curl -X GET "http://localhost:8080/v1/restaurants/0" -H "accept: */*"
 ```
 
-POST /restaurants
+POST /v1/restaurants
 > Create a restaurant
 ```sh
 curl -X POST "http://localhost:8080/v1/restaurants" -H "accept: */*" -H "Content-Type: */*" -d "{\"name\":\"string\",\"phoneNo\":\"string\",\"cuisines\":[\"string\"],\"address\":{\"line1\":\"string\",\"line2\":\"string\",\"city\":\"string\",\"country\":\"string\"},\"description\":\"string\"}"
 ```
 
-PUT /restaurants
+PUT /v1/restaurants
 > Updates a restaurant
 
 ```sh
 curl -X PUT "http://localhost:8080/v1/restaurants/0" -H "accept: */*" -H "Content-Type: */*" -d "{\"name\":\"string\",\"phoneNo\":\"string\",\"cuisines\":[\"string\"],\"address\":{\"line1\":\"string\",\"line2\":\"string\",\"city\":\"string\",\"country\":\"string\"},\"description\":\"string\"}"
 ```
 
-DELETE /restaurants
+DELETE /v1/restaurants
 > Delete a restaurant
 
 ```sh
