@@ -13,5 +13,5 @@ trait Service[K, T] {
 
   def update(id: K, elem: T): Future[StatusCode]
 
-  def delete(id: K): Future[String]
+  def delete(id: K): Future[StatusCode]
 }

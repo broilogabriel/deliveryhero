@@ -35,15 +35,20 @@ class RestaurantService(filePath: Option[String] = None)
   }
 
   override def update(id: Long, update: Restaurant): Future[StatusCode] = getById(id).map {
-    case Some(restaurant) => {
+    case Some(restaurant) =>
       val updatedRestaurants = safeLoad.filterNot(_.id.contains(id)) :+ update.copy(id = restaurant.id)
       save(updatedRestaurants)
       StatusCodes.NoContent
-    }
     case None => StatusCodes.NotFound
   }
 
-  override def delete(id: Long): Future[String] = ???
+  override def delete(id: Long): Future[StatusCode] = getById(id).map {
+    case Some(_) =>
+      val updatedRestaurants = safeLoad.filterNot(_.id.contains(id))
+      save(updatedRestaurants)
+      StatusCodes.NoContent
+    case None => StatusCodes.NotFound
+  }
 
   private def fromFile(filePath: String): Seq[Restaurant] = Try {
     if (!new File(filePath).exists()) {

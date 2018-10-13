@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import javax.ws.rs.core.HttpHeaders
-import javax.ws.rs.{GET, POST, PUT, Path}
+import javax.ws.rs._
 import org.json4s.Formats
 import org.json4s.jackson.Serialization.{read, write}
 
@@ -28,7 +28,7 @@ class RestaurantController(implicit formats: Formats, restaurantService: Service
     pathPrefix("restaurants") {
       get {
         getAll ~ getEntry
-      } ~ createEntry ~ update
+      } ~ createEntry ~ update ~ deleteEntry
     }
   }
 
@@ -129,9 +129,30 @@ class RestaurantController(implicit formats: Formats, restaurantService: Service
     }
   }
 
+  @DELETE
+  @Path("/{restaurantId}")
+  @Operation(summary = "Delete restaurant", description = "Deletes an existing restaurant", tags = Array("restaurant"),
+    parameters = Array(
+      new Parameter(name = "restaurantId", in = ParameterIn.PATH, required = true, description = "ID of restaurant to be deleted")
+    ),
+    responses = Array(
+      new ApiResponse(responseCode = "200", content = Array(new Content(schema = new Schema(implementation = classOf[String]))))
+    )
+  )
+  def deleteEntry: Route = delete {
+    path(PathMatchers.Segments) { segments =>
+      parse[Long, Route](segments.head) { id =>
+        onComplete(restaurantService.delete(id)) {
+          case Success(statusCode) => complete(statusCode)
+          case Failure(ex) => complete((StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}"))
+        }
+      }
+    }
+  }
+
   def parse[T, V <: Route](str: String)(block: T => Route)(implicit m: Manifest[T]): Route = Try(read[T](str)) match {
     case Success(restaurant) => block(restaurant)
-    case Failure(ex) => complete((StatusCodes.BadRequest))
+    case Failure(ex) => complete(StatusCodes.BadRequest)
   }
 
 }

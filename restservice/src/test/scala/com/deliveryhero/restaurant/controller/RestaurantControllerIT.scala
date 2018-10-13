@@ -159,10 +159,11 @@ class RestaurantControllerIT extends FunSpec with Matchers with MockFactory with
 
   describe("PUT") {
     it("should replace existing restaurant") {
-      defaultRestaurant.id.map(id => {
-        (restaurantService.update _).expects(id, defaultRestaurant).returning(Future(StatusCodes.NoContent))
+      defaultRestaurant.copy(id = Some(1)).id.map(id => {
+        val restaurantUpdate = defaultRestaurant.copy(phoneNo = "087-987-6543")
+        (restaurantService.update _).expects(id, restaurantUpdate).returning(Future(StatusCodes.NoContent))
 
-        val inputBody = write(defaultRestaurant.copy(phoneNo = "087-987-6543"))
+        val inputBody = write(restaurantUpdate)
 
         val actual = Request
           .Put(s"$RestaurantsEndpoint/$id")
@@ -170,7 +171,6 @@ class RestaurantControllerIT extends FunSpec with Matchers with MockFactory with
           .execute()
           .returnResponse()
         actual.getStatusLine.getStatusCode shouldBe 204
-
       })
     }
 
@@ -198,6 +198,32 @@ class RestaurantControllerIT extends FunSpec with Matchers with MockFactory with
         .execute()
         .returnResponse()
       actual.getStatusLine.getStatusCode shouldBe 400
+    }
+  }
+
+  describe("Delete") {
+    it("should delete existing variable") {
+      defaultRestaurant.copy(id = Some(1)).id.map(id => {
+        (restaurantService.delete _).expects(id).returning(Future(StatusCodes.NoContent))
+
+        val actual = Request
+          .Delete(s"$RestaurantsEndpoint/$id")
+          .execute()
+          .returnResponse()
+
+        actual.getStatusLine.getStatusCode shouldBe 204
+      })
+    }
+
+    it("should return 404 if nothing to delete") {
+      val updateId: Long = 123
+      (restaurantService.delete _).expects(updateId).returning(Future(StatusCodes.NotFound))
+
+      val actual = Request
+        .Delete(s"$RestaurantsEndpoint/$updateId")
+        .execute()
+        .returnResponse()
+      actual.getStatusLine.getStatusCode shouldBe 404
     }
   }
 
