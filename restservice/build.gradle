@@ -63,7 +63,8 @@ task createDockerfile(type: Dockerfile) {
     copyFile shadowJar.archiveName, shadowJar.archiveName
     copyFile 'entrypoint.sh', '${WORKING_DIR}'
     copyFile 'log4j.properties', '${WORKING_DIR}'
-    instruction """RUN chmod +x /opt/deliveryhero/entrypoint.sh"""
+    instruction """RUN mkdir config \\ 
+                   && chmod +x /opt/deliveryhero/entrypoint.sh"""
     label "${project.group}.maintainer": "Shane Murphy \"shane.murphy@kaspersky.com\"",
             "${project.group}.version": "$project.version",
             "${project.group}.release-date": "${new Date().format('yyyy-MM-dd HH:mm')}"

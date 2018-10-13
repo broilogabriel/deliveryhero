@@ -8,7 +8,6 @@ import akka.http.scaladsl.server.Directives.{complete, get, getFromResourceDirec
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import com.deliveryhero.restaurant.controller.{HealthCheckController, RestaurantController}
-import com.deliveryhero.restaurant.service.SwaggerDocService
 import com.typesafe.scalalogging.LazyLogging
 import org.json4s.Formats
 

@@ -8,7 +8,8 @@ import org.json4s.DefaultFormats
 object Main extends App with LazyLogging {
 
   implicit val formats = DefaultFormats
-  implicit val restaurantService = new RestaurantService()
+  implicit val idProvider = new AtomicLongProvider
+  implicit val restaurantService = new RestaurantService
   implicit val restaurantController = new RestaurantController
   implicit val healthCheckController = new HealthCheckController
   val restaurantsRoute = new RestaurantsRoute

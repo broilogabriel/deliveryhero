@@ -1,6 +1,6 @@
 package com.deliveryhero.restaurant.controller
 
-import com.deliveryhero.restaurant.RestaurantsRoute
+import com.deliveryhero.restaurant.{AtomicLongProvider, RestaurantsRoute}
 import com.deliveryhero.restaurant.service.RestaurantService
 import org.apache.http.client.fluent.Request
 import org.json4s.DefaultFormats
@@ -9,7 +9,9 @@ import org.scalatest._
 
 class HealthCheckControllerIT extends FunSpec with Matchers with MockFactory with BeforeAndAfter with BeforeAndAfterAll {
   implicit val formats = DefaultFormats
-  implicit val restaurantService = new RestaurantService()
+  implicit val jsonFilePath = Some("/restaurants.json")
+  implicit val idProvider = new AtomicLongProvider
+  implicit val restaurantService = new RestaurantService(jsonFilePath)
   implicit val restaurantController = new RestaurantController
   implicit val healthCheckController = new HealthCheckController
 
