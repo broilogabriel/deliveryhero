@@ -1,5 +1,6 @@
 package com.deliveryhero.restaurant.controller
 
+import akka.http.scaladsl.model.StatusCodes
 import com.deliveryhero.restaurant.model.{Address, Restaurant}
 import com.deliveryhero.restaurant.service.RestaurantService
 import com.deliveryhero.restaurant.{IdProvider, RestaurantsRoute}
@@ -120,7 +121,83 @@ class RestaurantControllerIT extends FunSpec with Matchers with MockFactory with
           .asString()
         actual shouldBe expected
       }
+    }
 
+    describe("ID") {
+      it("Should return specific restaurant") {
+        val restaurant1 = defaultRestaurant.copy(id = Some(111))
+        restaurant1.id.map(id => {
+          (restaurantService.getById _).expects(id)
+            .returning(Future(Some(restaurant1)))
+
+          val expected = write(restaurant1)
+
+          val value = s"$RestaurantsEndpoint/$id"
+          val actual = Request
+            .Get(value)
+            .execute()
+            .returnContent()
+            .asString()
+          actual shouldBe expected
+        })
+      }
+
+      it("Should return 404 for missing ID") {
+        val requestId = 123
+        (restaurantService.getById _).expects(requestId)
+          .returning(Future(None))
+
+        val value = s"$RestaurantsEndpoint/$requestId"
+        val actual = Request
+          .Get(value)
+          .execute()
+          .returnResponse()
+        actual.getStatusLine.getStatusCode shouldBe 404
+      }
+    }
+  }
+
+  describe("PUT") {
+    it("should replace existing restaurant") {
+      defaultRestaurant.id.map(id => {
+        (restaurantService.update _).expects(id, defaultRestaurant).returning(Future(StatusCodes.NoContent))
+
+        val inputBody = write(defaultRestaurant.copy(phoneNo = "087-987-6543"))
+
+        val actual = Request
+          .Put(s"$RestaurantsEndpoint/$id")
+          .bodyString(inputBody, ContentType.APPLICATION_JSON)
+          .execute()
+          .returnResponse()
+        actual.getStatusLine.getStatusCode shouldBe 204
+
+      })
+    }
+
+    it("should return 404 if restaurant ID not found") {
+      val updateId = 123
+      (restaurantService.update _).expects(updateId, defaultRestaurant).returning(Future(StatusCodes.NotFound))
+
+      val inputBody = write(defaultRestaurant)
+
+      val actual = Request
+        .Put(s"$RestaurantsEndpoint/$updateId")
+        .bodyString(inputBody, ContentType.APPLICATION_JSON)
+        .execute()
+        .returnResponse()
+      actual.getStatusLine.getStatusCode shouldBe 404
+    }
+
+    it("should return 400 if update json is not a restaurant object") {
+      val updateId = 123
+      val inputBody = """{"name":"thing"}"""
+
+      val actual = Request
+        .Put(s"$RestaurantsEndpoint/$updateId")
+        .bodyString(inputBody, ContentType.APPLICATION_JSON)
+        .execute()
+        .returnResponse()
+      actual.getStatusLine.getStatusCode shouldBe 400
     }
   }
 

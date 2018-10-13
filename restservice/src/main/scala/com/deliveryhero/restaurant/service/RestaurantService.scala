@@ -3,6 +3,7 @@ package com.deliveryhero.restaurant.service
 import java.io._
 import java.nio.charset.StandardCharsets
 
+import akka.http.scaladsl.model.{StatusCode, StatusCodes}
 import com.deliveryhero.restaurant.IdProvider
 import com.deliveryhero.restaurant.model.Restaurant
 import com.typesafe.scalalogging.LazyLogging
@@ -25,20 +26,22 @@ class RestaurantService(filePath: Option[String] = None)
   }
 
   override def get: Future[Seq[Restaurant]] = Future {
-    val load = safeLoad
-    logger.info(s"GET ALL: $load")
-    load
+    safeLoad
   }
 
-  private def safeLoad = {
-    val restaurants = filePath.map(fromFile) getOrElse saveEmptyFile
-    logger.info(s"Loaded restaurants: $restaurants")
-    restaurants
+
+  override def getById(id: Long): Future[Option[Restaurant]] = Future {
+    safeLoad.find(_.id.contains(id))
   }
 
-  override def getById(id: Long): Future[Option[Restaurant]] = ???
-
-  override def update(id: Long): Future[String] = ???
+  override def update(id: Long, update: Restaurant): Future[StatusCode] = getById(id).map {
+    case Some(restaurant) => {
+      val updatedRestaurants = safeLoad.filterNot(_.id.contains(id)) :+ update.copy(id = restaurant.id)
+      save(updatedRestaurants)
+      StatusCodes.NoContent
+    }
+    case None => StatusCodes.NotFound
+  }
 
   override def delete(id: Long): Future[String] = ???
 
@@ -54,6 +57,12 @@ class RestaurantService(filePath: Option[String] = None)
       logger.error(s"Unable to read restaurants from $filePath", t)
       saveEmptyFile
     }
+  }
+
+  private def safeLoad = {
+    val restaurants = filePath.map(fromFile) getOrElse saveEmptyFile
+    logger.info(s"Loaded restaurants: $restaurants")
+    restaurants
   }
 
   private def saveEmptyFile = {
