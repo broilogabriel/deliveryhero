@@ -25,11 +25,15 @@ class RestaurantService(filePath: Option[String] = None)
   }
 
   override def get: Future[Seq[Restaurant]] = Future {
-    safeLoad
+    val load = safeLoad
+    logger.info(s"GET ALL: $load")
+    load
   }
 
   private def safeLoad = {
-    filePath.map(fromFile) getOrElse saveEmptyFile
+    val restaurants = filePath.map(fromFile) getOrElse saveEmptyFile
+    logger.info(s"Loaded restaurants: $restaurants")
+    restaurants
   }
 
   override def getById(id: Long): Future[Option[Restaurant]] = ???
@@ -47,7 +51,7 @@ class RestaurantService(filePath: Option[String] = None)
   } match {
     case Success(configuration) => configuration
     case Failure(t: Throwable) => {
-      logger.error(s"Unable to read configuration from $filePath", t)
+      logger.error(s"Unable to read restaurants from $filePath", t)
       saveEmptyFile
     }
   }
@@ -58,7 +62,8 @@ class RestaurantService(filePath: Option[String] = None)
     currentRestaurants
   }
 
-  def save(restaurants: Seq[Restaurant]): Unit = filePath.map(path => {
+  def save(restaurants: Seq[Restaurant]): Unit = filePath.foreach(path => {
+    logger.info(s"Saving restaurants, updates DB: $restaurants")
     val json = writePretty[Seq[Restaurant]](restaurants)
     val writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(path)), StandardCharsets.UTF_8), true)
     try {

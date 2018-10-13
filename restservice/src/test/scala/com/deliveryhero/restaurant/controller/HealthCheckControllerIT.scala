@@ -10,7 +10,7 @@ import org.scalatest._
 class HealthCheckControllerIT extends FunSpec with Matchers with MockFactory with BeforeAndAfter with BeforeAndAfterAll {
   implicit val formats = DefaultFormats
   implicit val jsonFilePath = Some("/restaurants.json")
-  implicit val idProvider = new AtomicLongProvider
+  implicit val idProvider = AtomicLongProvider
   implicit val restaurantService = new RestaurantService(jsonFilePath)
   implicit val restaurantController = new RestaurantController
   implicit val healthCheckController = new HealthCheckController

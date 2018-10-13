@@ -23,7 +23,6 @@ class RestaurantsRoute(implicit formats: Formats,
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
   def startService(port: Int = DefaultPort): Unit = {
-    logger.info("entering...")
 
     def assets = pathPrefix("swagger") {
       getFromResourceDirectory("swagger") ~ pathSingleSlash(get(redirect("index.html", StatusCodes.PermanentRedirect)))

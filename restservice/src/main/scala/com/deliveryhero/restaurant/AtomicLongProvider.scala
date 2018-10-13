@@ -6,10 +6,10 @@ trait IdProvider[T] {
   def getNextId: T
 }
 
-class AtomicLongProvider extends IdProvider[Long] {
+object AtomicLongProvider extends IdProvider[Long] {
 
   val atomicLong = new AtomicLong(0)
 
-  def getNextId = atomicLong.get()
+  def getNextId = atomicLong.getAndIncrement()
 
 }

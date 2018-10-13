@@ -20,7 +20,7 @@ import org.json4s.jackson.Serialization.{read, write}
 
 import scala.util.{Failure, Success, Try}
 
-@Path("/restaurants")
+@Path("/v1/restaurants")
 class RestaurantController(implicit formats: Formats, restaurantService: Service[Long, Restaurant]) extends LazyLogging {
 
   def routes: Route = {
@@ -77,7 +77,10 @@ class RestaurantController(implicit formats: Formats, restaurantService: Service
     )
   )
   def getAll: Route = pathEnd {
-    complete(HttpEntity(ContentTypes.`application/json`, write(restaurantService.get)))
+    onComplete(restaurantService.get) {
+      case Success(value) => complete(HttpEntity(ContentTypes.`application/json`, write(value)))
+      case Failure(ex) => complete((StatusCodes.InternalServerError, s"An error occurred: ${ex.getMessage}"))
+    }
   }
 
 }

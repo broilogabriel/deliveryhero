@@ -11,10 +11,14 @@ import org.json4s.jackson.Serialization.write
 import org.scalamock.scalatest.MockFactory
 import org.scalatest._
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
+
 class RestaurantControllerIT extends FunSpec with Matchers with MockFactory with BeforeAndAfter with BeforeAndAfterAll {
   implicit val formats = DefaultFormats
   implicit val atomicLongIdProvider = mock[IdProvider[Long]]
-  implicit val restaurantService = new RestaurantService()
+  implicit val restaurantService = mock[RestaurantService]
   implicit val restaurantController = new RestaurantController
   implicit val healthCheckController = new HealthCheckController
 
@@ -35,7 +39,7 @@ class RestaurantControllerIT extends FunSpec with Matchers with MockFactory with
 
   describe("POST create") {
     it("Should save a correctly formatted restaurant") {
-      (atomicLongIdProvider.getNextId _).expects().returning(15)
+      (restaurantService.create _).expects(defaultRestaurant).returning(Future(Some(15)))
 
       val inputBody = write[Restaurant](defaultRestaurant)
 
@@ -49,9 +53,10 @@ class RestaurantControllerIT extends FunSpec with Matchers with MockFactory with
     }
 
     it("Should handle non unicode characters") {
-      (atomicLongIdProvider.getNextId _).expects().returning(15)
+      val restaurantNonUnicode = defaultRestaurant.copy(name = "Герой доставки")
+      (restaurantService.create _).expects(restaurantNonUnicode).returning(Future(Some(15)))
 
-      val inputBody = write[Restaurant](defaultRestaurant.copy(name = "Герой доставки"))
+      val inputBody = write[Restaurant](restaurantNonUnicode)
 
       val actual = Request
         .Post(RestaurantsEndpoint)
@@ -104,13 +109,9 @@ class RestaurantControllerIT extends FunSpec with Matchers with MockFactory with
   describe("GET") {
     describe("All") {
       it("Should return all existing restaurants") {
-        val inputBody = write[Restaurant](defaultRestaurant)
-        Request
-          .Post(RestaurantsEndpoint)
-          .bodyString(inputBody, ContentType.APPLICATION_JSON)
-          .execute()
+        (restaurantService.get _).expects().returning(Future(Seq(defaultRestaurant)))
 
-        val expected = write[Restaurant](defaultRestaurant)
+        val expected = write(Seq(defaultRestaurant))
 
         val actual = Request
           .Get(RestaurantsEndpoint)
